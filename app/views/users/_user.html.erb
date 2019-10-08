@@ -1,0 +1,10 @@
+<li>
+  <%= gravatar_for user, size: 50 %>
+  <%= link_to user.name, user %>
+
+  <!-- 管理者かつ当該ユーザーでない場合削除リンクを出す、
+  かつ表示するユーザーが管理者だったら削除リンク出さない-->
+  <% if current_user.admin? && !current_user?(user) && !user.admin? %>
+    | <%= link_to "delete", user_path(user), method: :delete, data: { confirm: "Are you sure?" } %>
+  <% end %>
+</li>
