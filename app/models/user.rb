@@ -1,4 +1,5 @@
 class User < ApplicationRecord
+  has_many :microposts, dependent: :destroy
   attr_accessor :remember_token, :activation_token, :reset_token
   before_save :downcase_email
   before_create :create_activation_digest
@@ -23,6 +24,12 @@ class User < ApplicationRecord
     def new_token
       SecureRandom.urlsafe_base64
     end
+  end
+
+  def feed
+    # user_id = ?というsql文を渡し?を使う事で引数のidをエスケープしている
+    # sql文を渡す際は常にエスケープする
+    Micropost.where("user_id = ?", id)
   end
 
   # 永続化セッションのため、トークンをダイジェストに変換し、DBに保存する

@@ -1,5 +1,9 @@
 <%= form_for(@user, url: yield(:url_path)) do |f| %>
+  <%= render 'shared/errors_messages', object: f.object %>
+
+  <% if false %>
   <%= render 'shared/errors_messages', object: @user %>
+  <% end %>
 
   <%= f.label :name %>
   <%= f.text_field :name, class: 'form-control' %>

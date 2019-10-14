@@ -13,6 +13,7 @@ class UsersController < ApplicationController
 
   def show
     @user = User.find(params[:id])
+    @microposts = @user.microposts.paginate(page: params[:page])
     # redirectしているが慣習的にreturnをすることになっている
     # ので　redirectがtrueの時　and でreturnとなる。
     redirect_to root_url and return unless @user.activated?
@@ -62,14 +63,15 @@ class UsersController < ApplicationController
     params.require(:user).permit(:name, :email, :password, :password_confirmation)
   end
 
+  # application_controllerに同様の機能を移したのでコメントアウト
   # ログインしていなかったらログイン画面へ
-  def logged_in_user
-    unless logged_in?
-      store_location
-      flash[:danger] = "Please log in"
-      redirect_to login_url
-    end
-  end
+  # def logged_in_user
+  #   unless logged_in?
+  #     store_location
+  #     flash[:danger] = "Please log in"
+  #     redirect_to login_url
+  #   end
+  # end
 
   def correct_user
     @user = User.find(params[:id])
