@@ -1,5 +1,20 @@
 class User < ApplicationRecord
   has_many :microposts, dependent: :destroy
+
+  # following association
+  has_many :active_relationships, class_name: "Relationship",
+                                  foreign_key: "follower_id",
+                                  dependent: :destroy
+  # followingのアソシエーション名から探しにいくidのクラス名が食い違うためsourceでfollowedを指定する必要がある
+  has_many :following, through: :active_relationships, source: :followed
+
+  # followed association
+  has_many :passive_relationships, class_name: "Relationship",
+                                    foreign_key: "followed_id",
+                                    dependent: :destroy
+  # followersの単数形からfollowerクラスを推察できるためsource: :followerは不要
+  has_many :followers, through: :passive_relationships, source: :follower
+
   attr_accessor :remember_token, :activation_token, :reset_token
   before_save :downcase_email
   before_create :create_activation_digest
@@ -26,10 +41,33 @@ class User < ApplicationRecord
     end
   end
 
+  # relationship関連
+  # follow user
+  def follow(other_user)
+    following << other_user
+  end
+
+  def unfollow(other_user)
+    active_relationships.find_by(followed_id: other_user.id).destroy
+  end
+
+  def following?(other_user)
+    following.include?(other_user)
+  end
+
   def feed
     # user_id = ?というsql文を渡し?を使う事で引数のidをエスケープしている
     # sql文を渡す際は常にエスケープする
-    Micropost.where("user_id = ?", id)
+    # Micropost.where("user_id = ?", id)
+
+    # following_idsとするとidの配列をカンマ区切りで文字列にまとめたものを返す
+    # ex) "1,2,3,4,10"
+    # In (?)
+    # Micropost.where("user_id IN (?) OR user_id =?", following_ids, id)
+
+    # subqueryとしてsqlで閉じたほうが早い
+    following_ids = "SELECT followed_id FROM relationships WHERE follower_id = :user_id"
+    Micropost.where("user_id IN (#{following_ids}) OR user_id = :user_id", user_id: id)
   end
 
   # 永続化セッションのため、トークンをダイジェストに変換し、DBに保存する
