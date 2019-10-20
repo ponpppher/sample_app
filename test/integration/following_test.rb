@@ -56,5 +56,11 @@ class FollowingTest < ActionDispatch::IntegrationTest
     end
   end
 
-
+  test "feed on Home page" do
+    get root_path
+    @user.feed.paginate(page: 1).each do |feed|
+      byebug
+      assert_match CGI.escapeHTML(feed.content), response.body
+    end
+  end
 end
